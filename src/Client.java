@@ -15,6 +15,9 @@ public class Client extends Application {
     PasswordField password;
     @Override
     public void start(Stage stage) throws IOException {
+        Socket socket = new Socket("localhost", 8000);
+        DataOutputStream toServer = new DataOutputStream(socket.getOutputStream());
+        DataInputStream fromServer = new DataInputStream(socket.getInputStream());;
         stage.setTitle("Lab8");
         Label l=new Label("          ");
 
@@ -35,10 +38,7 @@ public class Client extends Application {
         submit = new Button("Submit");
         submit.setStyle("-fx-background-color: #00FFFF");
         submit.setOnAction(p->{
-            try {
-                Socket socket = new Socket("localhost", 8000);
-                DataOutputStream toServer = new DataOutputStream(socket.getOutputStream());
-                DataInputStream fromServer = new DataInputStream(socket.getInputStream());;
+            try {                
 				toServer.writeUTF(login.getText());
 				toServer.flush();
                 System.out.println(login.getText() + "sent");
@@ -47,14 +47,13 @@ public class Client extends Application {
                 System.out.println(password.getText() + "sent");
 				Boolean authed = fromServer.readBoolean();
                 System.out.println(authed + "got");
-                socket.close();
             } catch (IOException ex) 
             {
                 System.out.println(ex.toString() + '\n');
             }
         });
 
-        clear =new Button("Clear");
+        clear = new Button("Clear");
         clear.setStyle("-fx-background-color: #00FFFF");
         clear.setOnAction(actionEvent -> {            
             login.clear();

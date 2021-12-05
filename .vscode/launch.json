@@ -6,9 +6,9 @@
     "configurations": [
         {
             "type": "java",
-            "name": "Launch Current File",
+            "name": "Launch Server",
             "request": "launch",
-            "mainClass": "${file}"
+            "mainClass": "Server"
         },
         {
             "type": "java",
@@ -17,6 +17,6 @@
             "vmArgs": " --module-path E:/javatest/javafx-sdk-17.0.1/lib --add-modules javafx.controls",
             "mainClass": "Client",
             "projectName": "JavaProject_chat_69fbab35"
-        }
+        },
     ]
 }

@@ -94,7 +94,7 @@ public class Server extends Thread{
 				} catch (SQLException e) {
 					System.out.println(e);
 				} 
-				thread.sleep(1500); 	//sleep database for 1.5 seconds
+				thread.sleep(1000); 	//sleep database for 1 seconds
 			}
 		} catch(IOException | InterruptedException ex) {
 			System.err.println(ex);

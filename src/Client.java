@@ -16,7 +16,7 @@ public class Client extends Application {
 
     private Stage stage;
 
-    Scene RegScene;
+    Scene RegScene;             //items to build Register Scene
     TextField RegLogin;
     PasswordField RegPassword;
     Label Reg_u =  new Label("User Name");
@@ -28,7 +28,7 @@ public class Client extends Application {
     VBox Reg_Vertical = new VBox();
 
 
-    Scene LoginScene;
+    Scene LoginScene;           //items to build Login Scene
     TextField LogLogin;
     PasswordField LogPassword;
     Label Log_u =  new Label("User Name");
@@ -39,8 +39,8 @@ public class Client extends Application {
     HBox Log_3 = new HBox();
     VBox Log_Vertical = new VBox();
     
-    Scene ChatScene;
-    public static final ObservableList data = FXCollections.observableArrayList();
+    Scene ChatScene;            //items to build Chat Scene
+    public static final ObservableList data = FXCollections.observableArrayList();  //message Collection
     final ListView listViewMsg = new ListView(data);
     TextArea Message;
     Button Send, SeeUsers, Logout;
@@ -48,7 +48,7 @@ public class Client extends Application {
     HBox Chat_2 = new HBox();
     VBox Chat_Vertical = new VBox();
 
-    Scene UsersScene;
+    Scene UsersScene;           //items to build Users Scene
     public static final ObservableList Users = FXCollections.observableArrayList();
     final ListView listViewUsers = new ListView(Users);
     Button back_main;
@@ -58,13 +58,14 @@ public class Client extends Application {
 
     @Override
     public void start(Stage start_stage) throws IOException, ClassNotFoundException {    
+        //set connection with server
         Socket socket = new Socket("192.168.100.40", 8000);
         DataOutputStream toServer = new DataOutputStream(socket.getOutputStream());
         DataInputStream fromServer = new DataInputStream(socket.getInputStream());
-        stage = start_stage;
+        stage = start_stage;            //set stage
         stage.setTitle("Chat Screen");
         
-        LoginScene = createLoginScene(toServer,  fromServer);
+        LoginScene = createLoginScene(toServer,  fromServer);       //create scenes
         RegScene = createRegisterScene(toServer,  fromServer);
 
         stage.setScene(LoginScene);
@@ -83,7 +84,8 @@ public class Client extends Application {
         signup = new Button("Sign up");
         signup.setStyle("-fx-background-color: #00FFFF");
         signup.setOnAction(p->{
-            try {            
+            try {          
+                //send data to server  
                 to.writeInt(2);            
 				to.writeUTF(RegLogin.getText());
 				to.flush();
@@ -92,9 +94,10 @@ public class Client extends Application {
                 System.out.println("New user "+RegLogin.getText()+" with a password: "+RegPassword.getText() + " sent to Server");
                 Boolean authed = from.readBoolean();
                 if(authed) {
+                    // create innner scenes if user get authenticated
                     ChatScene = createChatScene(to, from);
                     UsersScene = createUserScene(to, from);
-                    switchScenes(ChatScene); 
+                    switchScenes(ChatScene); //got to chat screen after authentication
                 }
             } catch (IOException | ClassNotFoundException ex) 
             {
@@ -131,6 +134,7 @@ public class Client extends Application {
         submit.setStyle("-fx-background-color: #00FFFF");
         submit.setOnAction(p->{
             try {        
+                //send data to server
                 to.writeInt(1);        
 				to.writeUTF(LogLogin.getText());
 				to.flush();
@@ -138,9 +142,10 @@ public class Client extends Application {
 				to.flush();
 				Boolean authed = from.readBoolean();
                 if(authed) {
+                    // create innner scenes if user get authenticated
                     ChatScene = createChatScene(to, from);
                     UsersScene = createUserScene(to, from);
-                    switchScenes(ChatScene);               
+                    switchScenes(ChatScene);     //go to chat screen after authentication
                     System.out.println("User " + LogLogin.getText() + " successfully logged in!!!");   
                 } else {
                     switchScenes(RegScene);
@@ -168,7 +173,7 @@ public class Client extends Application {
     }
 
     private Scene createChatScene(DataOutputStream to, DataInputStream from) throws IOException, ClassNotFoundException {
-        getMessages(to, from);
+        getMessages(to, from); //get messages from server
         Message = new TextArea();
         Message.setPrefHeight(40);
         Message.setPrefWidth(150);
@@ -178,16 +183,17 @@ public class Client extends Application {
         Send.setPrefWidth(50);
         Send.setOnAction(p-> {
             try {            
+                //send data to create new message
                 to.writeInt(4); 
                 String text = LogLogin.getText() != "" ? LogLogin.getText() : RegLogin.getText();           
 				to.writeUTF(text);
 				to.flush();
 				to.writeUTF(Message.getText());
 				to.flush();
-                Message.clear();
-                data.clear();
-                getMessages(to, from);
-                switchScenes(ChatScene);
+                Message.clear();    //clear textArea
+                data.clear();       //clear message list
+                getMessages(to, from);  //get messages from server again
+                switchScenes(ChatScene);    //update scene
                 System.out.println("New message was sent!!!");
             } catch (IOException | ClassNotFoundException ex) 
             {
@@ -200,7 +206,7 @@ public class Client extends Application {
         SeeUsers.setPrefHeight(40);
         SeeUsers.setPrefWidth(50);
         SeeUsers.setOnAction(p-> {
-            switchScenes(UsersScene);
+            switchScenes(UsersScene);   //show users scene
         });
 
         Logout = new Button("Logout");
@@ -208,7 +214,7 @@ public class Client extends Application {
         Logout.setPrefHeight(40);
         Logout.setPrefWidth(70);
         Logout.setOnAction(p-> {
-           switchScenes(LoginScene);
+           switchScenes(LoginScene);    //logout
         });
 
         Chat_1.getChildren().addAll(SeeUsers, Logout);
@@ -225,19 +231,19 @@ public class Client extends Application {
     }
 
     private Scene createUserScene(DataOutputStream to, DataInputStream from) throws IOException, ClassNotFoundException {
-        to.writeInt(5);
+        to.writeInt(5);         //send a request to server
         ObjectInputStream ois = new ObjectInputStream(from);  
         ArrayList users = (ArrayList) ois.readObject();
         listViewUsers.setPrefSize(190, 210);
         listViewUsers.setEditable(true);            
         for (int i = 0; i < users.size(); i++) {
             String user = (String) users.get(i);
-            Users.add(user);
+            Users.add(user);        //add all users to List
         }          
         listViewUsers.setItems(Users);
         back_main = new Button("Back to main");
         back_main.setOnAction(p-> {
-            switchScenes(ChatScene);
+            switchScenes(ChatScene);     
         });
         User_Vertical.getChildren().addAll(title, listViewUsers, back_main);
         User_Vertical.setSpacing(10);
@@ -247,7 +253,7 @@ public class Client extends Application {
     }
 
     private void getMessages(DataOutputStream to, DataInputStream from) throws IOException, ClassNotFoundException {
-        to.writeInt(3);
+        to.writeInt(3);     //send a request to database to get new messages
         ObjectInputStream ois = new ObjectInputStream(from);  
         ArrayList messages = (ArrayList) ois.readObject();
         listViewMsg.setPrefSize(190, 210);
@@ -256,16 +262,16 @@ public class Client extends Application {
             HashMap one_m = (HashMap) messages.get(i);
             String sender = (String) one_m.get("sender");
             String text = (String) one_m.get("text");
-            data.add(sender.toUpperCase() + ": " + text);
+            data.add(sender.toUpperCase() + ": " + text);       //add a message with its Sender
         }          
         listViewMsg.setItems(data);   
     }
     
     public void switchScenes(Scene scene) {
-		stage.setScene(scene);
+		stage.setScene(scene);      //function to help going another scenes
 	}
 
     public static void main(String[] args) {
-        launch();
+        launch();       //begin the application
     }
 }

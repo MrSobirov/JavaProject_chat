@@ -66,8 +66,6 @@ public class Client extends Application {
         
         LoginScene = createLoginScene(toServer,  fromServer);
         RegScene = createRegisterScene(toServer,  fromServer);
-        
-        UsersScene = createUserScene(toServer, fromServer);
 
         stage.setScene(LoginScene);
         stage.show();
@@ -89,16 +87,16 @@ public class Client extends Application {
                 to.writeInt(2);            
 				to.writeUTF(RegLogin.getText());
 				to.flush();
-                System.out.println(RegLogin.getText() + "sent");
 				to.writeUTF(RegPassword.getText());
 				to.flush();
-                System.out.println(RegPassword.getText() + "sent");
+                System.out.println("New user "+RegLogin.getText()+" with a password: "+RegPassword.getText() + " sent to Server");
                 Boolean authed = from.readBoolean();
-                System.out.println(authed + " got");
                 if(authed) {
-                    switchScenes(ChatScene);
+                    ChatScene = createChatScene(to, from);
+                    UsersScene = createUserScene(to, from);
+                    switchScenes(ChatScene); 
                 }
-            } catch (IOException ex) 
+            } catch (IOException | ClassNotFoundException ex) 
             {
                 System.out.println(ex.toString() + '\n');
             }
@@ -136,15 +134,14 @@ public class Client extends Application {
                 to.writeInt(1);        
 				to.writeUTF(LogLogin.getText());
 				to.flush();
-                System.out.println(LogLogin.getText() + " sent");
 				to.writeUTF(LogPassword.getText());
 				to.flush();
-                System.out.println(LogPassword.getText() + " sent");
 				Boolean authed = from.readBoolean();
-                System.out.println(authed + " got");
                 if(authed) {
                     ChatScene = createChatScene(to, from);
-                    switchScenes(ChatScene);
+                    UsersScene = createUserScene(to, from);
+                    switchScenes(ChatScene);               
+                    System.out.println("User " + LogLogin.getText() + " successfully logged in!!!");   
                 } else {
                     switchScenes(RegScene);
                 }
@@ -176,6 +173,7 @@ public class Client extends Application {
         Message.setPrefHeight(40);
         Message.setPrefWidth(150);
         Send = new Button("Send");
+        Send.setStyle("-fx-background-color: #4682B4");
         Send.setPrefHeight(40);
         Send.setPrefWidth(50);
         Send.setOnAction(p-> {
@@ -190,6 +188,7 @@ public class Client extends Application {
                 data.clear();
                 getMessages(to, from);
                 switchScenes(ChatScene);
+                System.out.println("New message was sent!!!");
             } catch (IOException | ClassNotFoundException ex) 
             {
                 System.out.println(ex.toString() + '\n');
@@ -197,6 +196,7 @@ public class Client extends Application {
         });
 
         SeeUsers = new Button("Users");
+        SeeUsers.setStyle("-fx-background-color: #00FF00");
         SeeUsers.setPrefHeight(40);
         SeeUsers.setPrefWidth(50);
         SeeUsers.setOnAction(p-> {
@@ -204,10 +204,11 @@ public class Client extends Application {
         });
 
         Logout = new Button("Logout");
+        Logout.setStyle("-fx-background-color: #FF0000");
         Logout.setPrefHeight(40);
         Logout.setPrefWidth(70);
         Logout.setOnAction(p-> {
-            switchScenes(LoginScene);
+           switchScenes(LoginScene);
         });
 
         Chat_1.getChildren().addAll(SeeUsers, Logout);
@@ -223,12 +224,10 @@ public class Client extends Application {
 
     }
 
-
     private Scene createUserScene(DataOutputStream to, DataInputStream from) throws IOException, ClassNotFoundException {
         to.writeInt(5);
         ObjectInputStream ois = new ObjectInputStream(from);  
         ArrayList users = (ArrayList) ois.readObject();
-        System.out.println(users);
         listViewUsers.setPrefSize(190, 210);
         listViewUsers.setEditable(true);            
         for (int i = 0; i < users.size(); i++) {
@@ -251,12 +250,10 @@ public class Client extends Application {
         to.writeInt(3);
         ObjectInputStream ois = new ObjectInputStream(from);  
         ArrayList messages = (ArrayList) ois.readObject();
-        System.out.println(messages);
         listViewMsg.setPrefSize(190, 210);
         listViewMsg.setEditable(true);
         for (int i = 0; i < messages.size(); i++) {
             HashMap one_m = (HashMap) messages.get(i);
-            System.out.println(one_m);
             String sender = (String) one_m.get("sender");
             String text = (String) one_m.get("text");
             data.add(sender.toUpperCase() + ": " + text);
